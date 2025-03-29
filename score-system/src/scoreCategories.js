@@ -1,0 +1,35 @@
+// 打分项点说明
+// 字段id：数据库主键、dept：部门、kind：项点类别、title：项点类别、seq：项点序号、cot：项点内容、cotdtl：项点详细说明、deft：项点默认值、min：项点最小值、max：项点最大值
+// 每个人对应所有打分项点，前11项合计为100分，既人员基础分为100，统计所有项点的最终结果为个人月度积分。
+export const scoreCategories=[
+  { id: "1", dept: "xx1", kind: "0", title: "工作任务", seq: "1", cot: "认真贯彻执行各级规章及管理制度", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "2", dept: "xx1", kind: "0", title: "工作任务", seq: "2", cot: "按研发标准化要求完成研发工作", cotdtl: "description", deft: 50, min: 0, max: 50 },
+  { id: "3", dept: "xx1", kind: "0", title: "工作任务", seq: "3", cot: "分管项目升级、维护、变更、应急演练等处置某他事务性工作", cotdtl: "description", deft: 10, min: 0, max: 10 },
+  { id: "4", dept: "xx1", kind: "0", title: "工作任务", seq: "4", cot: "其他事务性工作", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "5", dept: "xx1", kind: "0", title: "工作质量", seq: "5", cot: "项目完成质量", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "6", dept: "xx1", kind: "0", title: "工作质量", seq: "6", cot: "软件研发规范", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "7", dept: "xx1", kind: "0", title: "工作能力", seq: "7", cot: "专业能力", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "8", dept: "xx1", kind: "0", title: "工作能力", seq: "8", cot: "沟通协调能力", cotdtl: "description", deft: 3, min: 0, max: 3 },
+  { id: "9", dept: "xx1", kind: "0", title: "工作能力", seq: "9", cot: "学习或创新能力", cotdtl: "description", deft: 2, min: 0, max: 2 },
+  { id: "10", dept: "xx1", kind: "0", title: "工作态度", seq: "10", cot: "工作纪律", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "11", dept: "xx1", kind: "0", title: "工作态度", seq: "11", cot: "敬业精神", cotdtl: "description", deft: 5, min: 0, max: 5 },
+  { id: "12", dept: "xx1", kind: "0", title: "减分项", seq: "12", cot: "无故未完成工作任务", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "13", dept: "xx1", kind: "0", title: "减分项", seq: "13", cot: "不服从工作安排", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "14", dept: "xx1", kind: "0", title: "减分项", seq: "14", cot: "工作质量完成较差，未按时保质保量完成交办工作", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "15", dept: "xx1", kind: "0", title: "减分项", seq: "15", cot: "未保持通讯畅通，遇事不接电话，且不及时回电", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "16", dept: "xx1", kind: "0", title: "减分项", seq: "16", cot: "工作失误拖背、遇事推诿扯皮", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "17", dept: "xx1", kind: "0", title: "减分项", seq: "17", cot: "上班迟到、早退、劳动纪律涣散", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "18", dept: "xx1", kind: "0", title: "减分项", seq: "18", cot: "请假扣分", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "19", dept: "xx1", kind: "0", title: "减分项", seq: "19", cot: "运维项目故障或隐患处理不及时或处置不当，造成较大影响", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "20", dept: "xx1", kind: "0", title: "减分项", seq: "20", cot: "研发项目不按计划完成成被上级通报批评", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "21", dept: "xx1", kind: "0", title: "减分项", seq: "21", cot: "违反开发人员行为准则和网络安全红线", cotdtl: "description", deft: 0, min: -2, max: 0 },
+  { id: "22", dept: "xx1", kind: "0", title: "加分项", seq: "22", cot: "提前完成工作进度月工作质量完成较好并受到领导肯定和表扬", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "23", dept: "xx1", kind: "0", title: "加分项", seq: "23", cot: "开发项目受到集团公司表扬、表彰或授子各种荣蓄本人受上级通报表扬", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "24", dept: "xx1", kind: "0", title: "加分项", seq: "24", cot: "本人受上级通报表扬", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "25", dept: "xx1", kind: "0", title: "加分项", seq: "25", cot: "按上级要求非工作时段加班完成工作", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "26", dept: "xx1", kind: "0", title: "加分项", seq: "26", cot: "重点专项任务布置、检育成值守", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "27", dept: "xx1", kind: "0", title: "加分项", seq: "27", cot: "具有团队意识，善于合作，主动给予同事必要帮助，积极正面影响团队，提升团队士气和氛围", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "28", dept: "xx1", kind: "0", title: "加分项", seq: "28", cot: "工作有前瞻性，新技术研究、技术创新或在实际生产中投用，能为科室带来实破性提高", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "29", dept: "xx1", kind: "0", title: "加分项", seq: "29", cot: "热爱自己的工作，认同科案文化，顾全大局，不计得失，有担当，对损害科室利益的行为能有效制止", cotdtl: "description", deft: 0, min: 0, max: 2 },
+  { id: "30", dept: "xx1", kind: "0", title: "加分项", seq: "30", cot: "上级交办的临时性工作", cotdtl: "description", deft: 0, min: 0, max: 2 }
+]
