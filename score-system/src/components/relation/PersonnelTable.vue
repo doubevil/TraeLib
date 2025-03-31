@@ -1,175 +1,172 @@
 <template>
   <div class="personnel-table">
-    <a-table 
-      :dataSource="personnelData" 
-      :columns="columns"
-      :pagination="{ pageSize: 10 }"
-      :rowKey="record => record.memberName"
-      :scroll="{ y: 'calc(100vh - 250px)', x: 1200 }"
-    >
-      <!-- 姓名列 -->
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'memberName'">
-          <span>{{ record.memberName }}</span>
-        </template>
-        
-        <!-- 项目负责人列 -->
-        <template v-if="column.dataIndex === 'leaderNames'">
-          <template v-if="record.leaderNames && record.leaderNames.length > 0">
-            <a-tag v-for="leader in record.leaderNames" :key="leader" color="blue">
-              {{ leader }}
-            </a-tag>
+    <a-spin :spinning="loading">
+      <a-table
+        :dataSource="relations"
+        :columns="columns"
+        :pagination="{ pageSize: 20 }"
+        :rowKey="record => record.id"
+        bordered
+      >
+        <!-- 组员姓名 -->
+        <template #bodyCell="{ column, record }">
+          <!-- 项目负责人 -->
+          <template v-if="column.dataIndex === 'leaders'">
+            <span>{{ record.leaders }}</span>
           </template>
-          <template v-else>
-            <span>-</span>
-          </template>
-        </template>
-        
-        <!-- 角色列 -->
-        <template v-if="column.dataIndex === 'role'">
-          <a-select 
-            v-model:value="record.role" 
-            style="width: 120px"
-            :options="getAvailableRoles(record)"
-            @change="(value) => updateRole(record.memberName, value)"
-          />
-        </template>
-        
-        <!-- 项目列 -->
-        <template v-if="column.dataIndex === 'projects'">
-          <template v-if="record.projects && record.projects.length > 0">
-            <a-tag v-for="project in record.projects" :key="project" color="green">
+          
+          <!-- 项目参与情况 -->
+      <template v-if="column.dataIndex === 'project_names'">
+            <a-tag v-for="project in record.project_names" :key="project" color="blue">
               {{ project }}
             </a-tag>
           </template>
-          <template v-else>
-            <span>-</span>
+          
+          <!-- 人员角色 -->
+          <template v-if="column.dataIndex === 'role'">
+            <a-select
+              v-model:value="record.role"
+              style="width: 120px"
+              @change="value => handleRoleChange(record, value)"
+            >
+              <a-select-option 
+                v-for="option in getRoleOptions(record.role)" 
+                :key="option.value" 
+                :value="option.value"
+              >
+                {{ option.label }}
+              </a-select-option>
+            </a-select>
+          </template>
+          
+          <!-- 人员属性 -->
+          <template v-if="column.dataIndex === 'attributes'">
+            <a-select
+              v-model:value="record.attributes"
+              mode="multiple"
+              style="width: 100%"
+              @change="value => handleAttributesChange(record, value)"
+            >
+              <a-select-option v-for="option in attributeOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </a-select-option>
+            </a-select>
           </template>
         </template>
-        
-        <!-- 属性列 -->
-        <template v-if="column.dataIndex === 'attributes'">
-          <a-select 
-            v-model:value="record.attributes" 
-            mode="multiple" 
-            style="width: 100%"
-            :options="attributeOptions.map(attr => ({ value: attr, label: attr }))"
-            @change="(value) => updateAttributes(record.memberName, value)"
-          />
-        </template>
-      </template>
-    </a-table>
-    
-    <div class="table-footer">
-      <a-button type="primary" @click="saveChanges">保存更改</a-button>
-    </div>
+      </a-table>
+    </a-spin>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRelationStore } from '../../store/relation';
-import { message } from 'ant-design-vue';
 
 const store = useRelationStore();
-const personnelData = computed(() => store.personnelData);
-const roleOptions = computed(() => store.roleOptions);
-const attributeOptions = computed(() => store.attributeOptions);
-const roleRanking = computed(() => store.roleRanking);
+const loading = computed(() => store.loading);
+const relations = computed(() => store.relations);
 
+// 表格列定义
 const columns = [
   {
     title: '组员姓名',
-    dataIndex: 'memberName',
-    key: 'memberName',
-    width: 100,
-    fixed: 'left',
-    sorter: (a, b) => a.memberName.localeCompare(b.memberName),
+    dataIndex: 'employee_name',
+    key: 'employee_name',
+    sorter: (a, b) => a.employee_name.localeCompare(b.employee_name),
   },
   {
     title: '项目负责人',
-    dataIndex: 'leaderNames',
-    key: 'leaderNames',
-    width: 200,
+    dataIndex: 'leaders',
+    key: 'leaders',
   },
   {
     title: '负责人数量',
-    dataIndex: 'leaderCount',
-    key: 'leaderCount',
-    width: 100,
-    sorter: (a, b) => a.leaderCount - b.leaderCount,
+    dataIndex: 'leader_count',
+    key: 'leader_count',
+    sorter: (a, b) => a.leader_count - b.leader_count,
   },
   {
     title: '项目参与情况',
-    dataIndex: 'projects',
-    key: 'projects',
-    width: 250,
+    dataIndex: 'project_names',
+    key: 'project_names',
   },
   {
     title: '人员角色',
     dataIndex: 'role',
     key: 'role',
-    width: 150,
-    filters: roleOptions.value.map(role => ({ text: role, value: role })),
+    filters: [
+      { text: '项目负责人', value: 'project_leader' },
+      { text: '项目组员', value: 'project_member' },
+      { text: '自由人', value: 'free_person' },
+    ],
     onFilter: (value, record) => record.role === value,
   },
   {
     title: '人员属性',
     dataIndex: 'attributes',
     key: 'attributes',
-    width: 300,
-  }
+  },
 ];
 
-// 根据当前角色获取可用的角色选项（只能由高向低变更）
-const getAvailableRoles = (record) => {
-  const currentRoleRank = roleRanking.value[record.role];
-  return roleOptions.value
-    .filter(role => roleRanking.value[role] <= currentRoleRank)
-    .map(role => ({ value: role, label: role }));
+// 角色选项
+const roleOptions = [
+  { value: 'project_leader', label: '项目负责人' },
+  { value: 'project_member', label: '项目组员' },
+  { value: 'free_person', label: '自由人' },
+];
+
+// 属性选项
+const attributeOptions = [
+  { value: 'tech_dev', label: '技术开发' },
+  { value: 'project_manager', label: '项目管理' },
+  { value: 'test', label: '测试' },
+  { value: 'design', label: '设计' },
+  { value: 'operation', label: '运营' },
+  { value: 'market', label: '市场' },
+  { value: 'other', label: '其他' },
+];
+
+// 格式化项目负责人显示
+const formatLeaders = (leaders) => {
+  console.log(leaders)
+  if (!leaders || !leaders.length) return '无';
+  return leaders.map(leader => leader.name).join('、');
 };
 
-const updateRole = async (personName, newRole) => {
-  try {
-    await store.updatePersonRole(personName, newRole);
-    message.success(`已将 ${personName} 的角色更新为 ${newRole}`);
-  } catch (error) {
-    message.error(error.message);
-    // 刷新数据，恢复原始状态
-    await store.importData(store.currentDate);
-  }
+// 根据当前角色获取可选的角色选项（只能由高向低变更）
+const getRoleOptions = (currentRole) => {
+  const roleLevels = {
+    'project_leader': 3,
+    'project_member': 2,
+    'free_person': 1
+  };
+  
+  return roleOptions.filter(option => 
+    roleLevels[option.value] <= roleLevels[currentRole]
+  );
 };
 
-const updateAttributes = async (personName, attributes) => {
-  try {
-    await store.updatePersonAttributes(personName, attributes);
-    message.success(`已更新 ${personName} 的人员属性`);
-  } catch (error) {
-    message.error(error.message);
-  }
+// 处理角色变更
+const handleRoleChange = async (record, newRole) => {
+  if (record.role === newRole) return;
+  
+  // 更新角色
+  await store.updateRelation(record.id, {
+    role: newRole
+  });
 };
 
-const saveChanges = async () => {
-  try {
-    await store.saveChanges();
-    message.success('所有更改已保存');
-  } catch (error) {
-    message.error('保存失败: ' + error.message);
-  }
+// 处理属性变更
+const handleAttributesChange = async (record, newAttributes) => {
+  // 更新属性
+  await store.updateRelation(record.id, {
+    attributes: newAttributes
+  });
 };
 </script>
 
 <style scoped>
 .personnel-table {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.table-footer {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+  width: 100%;
 }
 </style>

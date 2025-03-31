@@ -1,0 +1,38 @@
+# Django核心
+Django==4.2.7
+djangorestframework==3.14.0
+
+# 数据库连接
+mysqlclient==2.2.0
+PyMySQL==1.1.0
+
+# 跨域资源共享
+django-cors-headers==4.3.0
+
+# 环境变量管理
+python-dotenv==1.0.0
+
+# 过滤和分页
+django-filter==23.3
+
+# API文档
+drf-yasg==1.21.7
+
+# 导出功能
+reportlab==4.0.7
+openpyxl==3.1.2
+python-docx==1.0.1
+
+# 工具库
+pandas==2.1.2
+numpy==1.26.1
+
+# 开发工具
+django-debug-toolbar==4.2.0
+
+# 测试工具
+pytest==7.4.3
+pytest-django==4.7.0
+
+# 部署工具
+gunicorn==21.2.0
