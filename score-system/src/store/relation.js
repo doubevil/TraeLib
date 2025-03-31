@@ -1,232 +1,86 @@
-import { defineStore } from 'pinia'
-
-// 模拟从外部系统导入的数据
-const mockImportData = {
-  '202303': [
-    {
-      date: '202303',
-      memberName: '张三',
-      leaderNames: ['李四', '王五'],
-      leaderCount: 2,
-      projects: ['项目1', '项目2', '项目3', '项目4'],
-      role: '项目组员',
-      attributes: ['技术开发', '项目管理', '测试', '设计']
-    },
-    {
-      date: '202303',
-      memberName: '李四',
-      leaderNames: ['李四'],
-      leaderCount: 1,
-      projects: ['项目1'],
-      role: '项目负责人',
-      attributes: ['技术开发', '项目管理', '测试', '设计']
-    },
-    {
-      date: '202303',
-      memberName: '王五',
-      leaderNames: ['王五'],
-      leaderCount: 1,
-      projects: ['项目2'],
-      role: '项目负责人',
-      attributes: ['项目管理', '测试']
-    },
-    {
-      date: '202303',
-      memberName: '赵六',
-      leaderNames: ['李四', '王五'],
-      leaderCount: 2,
-      projects: ['项目1', '项目2'],
-      role: '项目组员',
-      attributes: ['技术开发', '测试']
-    },
-    {
-      date: '202303',
-      memberName: '钱七',
-      leaderNames: [],
-      leaderCount: 0,
-      projects: [],
-      role: '自由人',
-      attributes: ['设计', '市场']
-    }
-  ],
-  '202302': [
-    {
-      date: '202302',
-      memberName: '张三',
-      leaderNames: ['李四'],
-      leaderCount: 1,
-      projects: ['项目1', '项目2'],
-      role: '项目组员',
-      attributes: ['技术开发', '测试']
-    },
-    {
-      date: '202302',
-      memberName: '李四',
-      leaderNames: ['李四'],
-      leaderCount: 1,
-      projects: ['项目1'],
-      role: '项目负责人',
-      attributes: ['技术开发', '项目管理']
-    },
-    {
-      date: '202302',
-      memberName: '王五',
-      leaderNames: ['王五'],
-      leaderCount: 1,
-      projects: ['项目2'],
-      role: '项目负责人',
-      attributes: ['项目管理', '测试']
-    }
-  ]
-}
+import { defineStore } from 'pinia';
+import { relationApi } from '../api/relation';
+import { message } from 'ant-design-vue';
 
 export const useRelationStore = defineStore('relation', {
   state: () => ({
-    personnelData: [],
-    availableDates: Object.keys(mockImportData).sort().reverse(),
+    relations: [],
     currentDate: '',
-    userName: '管理员',
-    userIP: '192.168.1.1',
     isDataImported: false,
-    roleOptions: ['项目组员', '项目负责人', '自由人'],
-    attributeOptions: ['技术开发', '项目管理', '测试', '设计', '运营', '市场', '其他'],
-    roleRanking: {
-      '项目负责人': 2,
-      '项目组员': 1,
-      '自由人': 0
-    }
+    loading: false,
+    projectLeaderCount: 0,
+    projectMemberCount: 0,
+    freePersonCount: 0
   }),
-  getters: {
-    projectLeaderCount: (state) => {
-      return state.personnelData.filter(person => person.role === '项目负责人').length
-    },
-    projectMemberCount: (state) => {
-      return state.personnelData.filter(person => person.role === '项目组员').length
-    },
-    freePersonCount: (state) => {
-      return state.personnelData.filter(person => person.role === '自由人').length
-    },
-    projectList: (state) => {
-      const projects = new Set()
-      state.personnelData.forEach(person => {
-        person.projects.forEach(project => projects.add(project))
-      })
-      return Array.from(projects)
-    },
-    leaderList: (state) => {
-      const leaders = new Set()
-      state.personnelData.forEach(person => {
-        if (person.role === '项目负责人') {
-          leaders.add(person.memberName)
-        }
-      })
-      return Array.from(leaders)
-    }
-  },
+  
   actions: {
-    importData(date = '') {
-      // 如果没有指定日期，使用最新的日期
-      const targetDate = date || this.availableDates[0]
-      
-      if (mockImportData[targetDate]) {
-        this.personnelData = JSON.parse(JSON.stringify(mockImportData[targetDate]))
-        this.currentDate = targetDate
-        this.isDataImported = true
-        return Promise.resolve(true)
-      } else {
-        return Promise.reject(new Error(`没有找到 ${targetDate} 的数据`))
-      }
-    },
-    updatePersonRole(personName, newRole) {
-      const person = this.personnelData.find(p => p.memberName === personName)
-      if (!person) return
-      
-      const oldRole = person.role
-      
-      // 检查角色变更是否符合规则（只能由高向低变更）
-      if (this.roleRanking[oldRole] < this.roleRanking[newRole]) {
-        return Promise.reject(new Error('角色只能由高向低变更'))
-      }
-      
-      // 如果角色没有变化，直接返回
-      if (oldRole === newRole) return Promise.resolve()
-      
-      // 处理从项目负责人变为项目组员的情况
-      if (oldRole === '项目负责人' && newRole === '项目组员') {
-        // 1. 从本人的领导列表中移除自己
-        const selfIndex = person.leaderNames.indexOf(personName)
-        if (selfIndex !== -1) {
-          person.leaderNames.splice(selfIndex, 1)
+    // 获取指定日期的人员关系数据
+    async fetchRelationsByDate(date) {
+      this.loading = true;
+      try {
+        const response = await relationApi.getRelationsByDate(date);
+        console.log('获取到的数据:', response.data);
+        
+        // 修改这里：检查 response.data 是否有 results 字段
+        const relationData = response.data.results || response.data;
+        
+        // 确保数据是数组
+        this.relations = Array.isArray(relationData) ? relationData : [];
+        this.currentDate = date;
+        this.isDataImported = this.relations.length > 0;
+        
+        // 更新统计数据
+        this.fetchStatistics(date);
+        
+        // 如果没有数据，显示提示
+        if (this.relations.length === 0) {
+          message.info(`${date}没有人员关系数据`);
         }
         
-        // 2. 如果没有其他领导，则设置为自由人
-        if (person.leaderNames.length === 0) {
-          person.role = '自由人'
-          person.leaderCount = 0
-        } else {
-          person.role = newRole
-          person.leaderCount = person.leaderNames.length
-        }
-        
-        // 3. 从其他人的领导列表中移除此人
-        this.personnelData.forEach(p => {
-          if (p.memberName !== personName) {
-            const leaderIndex = p.leaderNames.indexOf(personName)
-            if (leaderIndex !== -1) {
-              p.leaderNames.splice(leaderIndex, 1)
-              p.leaderCount = p.leaderNames.length
-              
-              // 如果没有其他领导，则设置为自由人
-              if (p.leaderNames.length === 0 && p.role === '项目组员') {
-                p.role = '自由人'
-              }
-            }
-          }
-        })
+        return this.relations;
+      } catch (error) {
+        console.error('获取人员关系数据失败:', error);
+        message.error('获取人员关系数据失败');
+        return [];
+      } finally {
+        this.loading = false;
       }
-      
-      // 处理从项目负责人变为自由人的情况
-      else if (oldRole === '项目负责人' && newRole === '自由人') {
-        // 1. 设置角色为自由人
-        person.role = newRole
-        
-        // 2. 从其他人的领导列表中移除此人
-        this.personnelData.forEach(p => {
-          if (p.memberName !== personName) {
-            const leaderIndex = p.leaderNames.indexOf(personName)
-            if (leaderIndex !== -1) {
-              p.leaderNames.splice(leaderIndex, 1)
-              p.leaderCount = p.leaderNames.length
-              
-              // 如果没有其他领导，则设置为自由人
-              if (p.leaderNames.length === 0 && p.role === '项目组员') {
-                p.role = '自由人'
-              }
-            }
-          }
-        })
-      }
-      
-      // 处理从项目组员变为自由人的情况
-      else if (oldRole === '项目组员' && newRole === '自由人') {
-        // 简单地更新角色
-        person.role = newRole
-      }
-      
-      return Promise.resolve()
     },
-    updatePersonAttributes(personName, attributes) {
-      const person = this.personnelData.find(p => p.memberName === personName)
-      if (person) {
-        person.attributes = [...attributes]
-        return Promise.resolve()
+  
+    // 获取统计数据
+    async fetchStatistics(date) {
+      try {
+        const response = await relationApi.getStatistics(date);
+        console.log('获取到的统计数据:', response.data);
+        this.projectLeaderCount = response.data.project_leader_count;
+        this.projectMemberCount = response.data.project_member_count;
+        this.freePersonCount = response.data.free_person_count;
+        return response.data;
+      } catch (error) {
+        console.error('获取统计数据失败:', error);
+        return null;
       }
-      return Promise.reject(new Error(`未找到人员: ${personName}`))
     },
-    saveChanges() {
-      // 在实际应用中，这里会发送请求到后端保存数据
-      console.log('保存数据', this.personnelData)
-      return Promise.resolve()
-    }
   }
-})
+});
+
+// 处理关系数据的辅助函数
+export const processRelationData = (data) => {
+  return data.map(item => ({
+    employee_name: item.employee_name,
+    leaders: item.leaders || '',
+    project_names: item.project_names || [],
+    role: item.role,
+    // ...其他字段
+  }));
+};
+
+// 获取角色的显示名称
+export const getRoleDisplayName = (role) => {
+  const roleMap = {
+    'project_leader': '项目负责人',
+    'project_member': '项目组员',
+    'free_person': '自由人',
+  };
+  return roleMap[role] || role;
+};
